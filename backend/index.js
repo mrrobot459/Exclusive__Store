@@ -6,7 +6,6 @@ import Product from "./routes/productRoute.js"
 import cart from "./routes/cartRoute.js"
 import order from "./routes/orderRoute.js"
 import wishlist from "./routes/wishListRoute.js"
-import admin from "./routes/adminRoute.js"
 import cors from "cors"
 
 // Tempory code 
@@ -26,7 +25,6 @@ app.use("/api/product", Product)
 app.use("/api/cart", cart)
 app.use("/api/order", order)
 app.use("/api/wishlist", wishlist)
-app.use("/api/admin", admin)
 
 
 app.listen(PORT, () => {

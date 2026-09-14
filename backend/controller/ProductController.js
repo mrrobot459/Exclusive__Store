@@ -11,6 +11,13 @@ const getProduct = async (req, res) => {
     try {
         const products = await Product.find();
 
+        // delete 
+        console.log("DB:", mongoose.connection.name);
+        console.log("Collection:", Product.collection.name);
+
+        const count = await Product.countDocuments();
+        console.log("Product count:", count);
+        // delete 
         if (products.length === 0) {
             return res.status(404).json({
                 success: false,
