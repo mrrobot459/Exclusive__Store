@@ -1,10 +1,25 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../api/Api.js";
+
+const initialForm = {
+  fullName: "",
+  phone: "",
+  address: "",
+  city: "",
+  state: "",
+  pincode: "",
+  paymentMethod: "COD",
+};
 
 const Cart = () => {
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [checkout, setCheckout] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [form, setForm] = useState(initialForm);
+  const navigate = useNavigate();
 
   const token = localStorage.getItem("token");
 
@@ -52,7 +67,7 @@ const Cart = () => {
         );
       }
 
-      fetchCart();
+      await fetchCart();
       window.dispatchEvent(new Event("cartUpdated"));
     } catch (err) {
       console.error(err);
@@ -69,11 +84,67 @@ const Cart = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      fetchCart();
+      await fetchCart();
       window.dispatchEvent(new Event("cartUpdated"));
     } catch (err) {
       console.error(err);
       setError(err.response?.data?.message || "Unable to remove item");
+    }
+  };
+
+  const handleInputChange = (event) => {
+    const { name, value } = event.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleCheckout = async () => {
+    if (!cart || !cart.items || cart.items.length === 0) {
+      setError("Your cart is empty");
+      return;
+    }
+
+    const { fullName, phone, address, city, state, pincode, paymentMethod } = form;
+
+    if (!fullName || !phone || !address || !city || !state || !pincode) {
+      setError("Please fill in all delivery details");
+      return;
+    }
+
+    setSubmitting(true);
+    setError("");
+
+    try {
+      const items = cart.items.map((item) => ({
+        product: item.product?._id,
+        quantity: Number(item.quantity || 1),
+        price: Number(item.product?.price || 0),
+      }));
+
+      const response = await api.post(
+        "/order/addOrder",
+        {
+          items,
+          totalAmount: total,
+          shippingAddress: { fullName, phone, address, city, state, pincode },
+          paymentMethod,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (response.data?.success) {
+        setCheckout(false);
+        setForm(initialForm);
+        setCart(null);
+        window.dispatchEvent(new Event("cartUpdated"));
+        navigate("/order");
+      }
+    } catch (err) {
+      console.error(err);
+      setError(err.response?.data?.message || "Unable to place order");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -82,6 +153,9 @@ const Cart = () => {
     const price = Number(item.product?.price || 0);
     return sum + price * Number(item.quantity || 0);
   }, 0);
+  const shipping = subtotal > 0 ? (subtotal >= 1500 ? 0 : 49) : 0;
+  const discount = subtotal >= 3000 ? 200 : 0;
+  const total = Math.max(subtotal + shipping - discount, 0);
 
   if (loading) {
     return (
@@ -167,7 +241,7 @@ const Cart = () => {
         </div>
 
         <div className="rounded-2xl border border-gray-200 bg-gray-50 p-5 shadow-sm">
-          <h2 className="text-xl font-bold text-gray-900">Order Summary</h2>
+          <h2 className="text-xl font-bold text-gray-900">Bill Summary</h2>
 
           <div className="mt-5 space-y-3 text-gray-700">
             <div className="flex justify-between">
@@ -176,17 +250,98 @@ const Cart = () => {
             </div>
             <div className="flex justify-between">
               <span>Shipping</span>
-              <span>Free</span>
+              <span>{shipping === 0 ? "Free" : `₹${shipping.toLocaleString("en-IN")}`}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Discount</span>
+              <span>-₹{discount.toLocaleString("en-IN")}</span>
             </div>
             <div className="flex justify-between border-t border-gray-200 pt-3 text-lg font-bold text-gray-900">
               <span>Total</span>
-              <span>₹{subtotal.toLocaleString("en-IN")}</span>
+              <span>₹{total.toLocaleString("en-IN")}</span>
             </div>
           </div>
 
-          <button className="mt-6 w-full rounded-lg bg-red-500 px-4 py-3 font-semibold text-white transition hover:bg-red-600">
-            Proceed to Checkout
-          </button>
+          {!checkout ? (
+            <button
+              onClick={() => setCheckout(true)}
+              className="mt-6 w-full rounded-lg bg-red-500 px-4 py-3 font-semibold text-white transition hover:bg-red-600"
+            >
+              Proceed to Checkout
+            </button>
+          ) : (
+            <div className="mt-6 space-y-4">
+              <div className="space-y-3">
+                <input
+                  type="text"
+                  name="fullName"
+                  value={form.fullName}
+                  onChange={handleInputChange}
+                  placeholder="Full name"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                />
+                <input
+                  type="text"
+                  name="phone"
+                  value={form.phone}
+                  onChange={handleInputChange}
+                  placeholder="Phone number"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                />
+                <input
+                  type="text"
+                  name="address"
+                  value={form.address}
+                  onChange={handleInputChange}
+                  placeholder="Street address"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                />
+                <div className="grid grid-cols-2 gap-3">
+                  <input
+                    type="text"
+                    name="city"
+                    value={form.city}
+                    onChange={handleInputChange}
+                    placeholder="City"
+                    className="rounded-lg border border-gray-300 px-3 py-2"
+                  />
+                  <input
+                    type="text"
+                    name="state"
+                    value={form.state}
+                    onChange={handleInputChange}
+                    placeholder="State"
+                    className="rounded-lg border border-gray-300 px-3 py-2"
+                  />
+                </div>
+                <input
+                  type="text"
+                  name="pincode"
+                  value={form.pincode}
+                  onChange={handleInputChange}
+                  placeholder="Pincode"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                />
+                <select
+                  name="paymentMethod"
+                  value={form.paymentMethod}
+                  onChange={handleInputChange}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                >
+                  <option value="COD">Cash on Delivery</option>
+                  <option value="RAZORPAY">Razorpay</option>
+                </select>
+              </div>
+
+              <button
+                onClick={handleCheckout}
+                disabled={submitting}
+                className="w-full rounded-lg bg-red-500 px-4 py-3 font-semibold text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:bg-red-300"
+              >
+                {submitting ? "Placing Order..." : "Place Order"}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -17,6 +17,7 @@ const ProductDetail = () => {
       try {
         const response = await api.get(`/product/${id}`);
         setProduct(response.data.product || null);
+        console.log("product" . response)
       } catch (error) {
         const status = error.response?.status;
 

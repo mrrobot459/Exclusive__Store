@@ -57,11 +57,18 @@ const Order = () => {
         <div className="space-y-4">
           {orders.map((order) => (
             <div key={order._id} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-4">
                 <p className="text-lg font-semibold text-gray-800">Order #{order._id?.slice(-6)}</p>
-                <p className="text-sm font-medium text-red-500">{order.status || "Processing"}</p>
+                <p className="text-sm font-medium text-red-500">
+                  {order.orderStatus || order.status || "Processing"}
+                </p>
               </div>
-              <p className="mt-3 text-gray-600">Total: ₹{Number(order.totalAmount || 0).toLocaleString("en-IN")}</p>
+
+              <div className="mt-3 space-y-2 text-gray-600">
+                <p>Payment: {order.paymentMethod || "COD"}</p>
+                <p>Items: {order.items?.length || 0}</p>
+                <p>Total: ₹{Number(order.totalAmount || 0).toLocaleString("en-IN")}</p>
+              </div>
             </div>
           ))}
         </div>

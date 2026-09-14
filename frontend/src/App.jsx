@@ -13,6 +13,11 @@ import AuthRoute from './component/AuthRoute.jsx';
 import NotFound from './pages/NotFound.jsx';
 import Products from './pages/Products.jsx';
 import ProductDetail from './pages/ProductDetail.jsx';
+import Order from './pages/Order.jsx';
+import AdminLogin from './pages/AdminLogin.jsx';
+import AdminDashboard from './pages/AdminDashboard.jsx';
+import AdminUsers from './pages/AdminUsers.jsx';
+import AdminProducts from './pages/AdminProducts.jsx';
 
 const App = () => {
   return (
@@ -38,10 +43,55 @@ const App = () => {
           />
 
           <Route
+            path="order"
+            element={
+              <ProtectedRoute>
+                <Order />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
             path="wishlist"
             element={
               <ProtectedRoute>
                 <Wishlist />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="admin/login"
+            element={
+              <AuthRoute>
+                <AdminLogin />
+              </AuthRoute>
+            }
+          />
+
+          <Route
+            path="admin"
+            element={
+              <ProtectedRoute requireAdmin>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="admin/users"
+            element={
+              <ProtectedRoute requireAdmin>
+                <AdminUsers />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="admin/products"
+            element={
+              <ProtectedRoute requireAdmin>
+                <AdminProducts />
               </ProtectedRoute>
             }
           />

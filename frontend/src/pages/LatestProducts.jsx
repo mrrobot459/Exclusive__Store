@@ -10,6 +10,8 @@ const LatestProducts = () => {
     const fetchLatest = async () => {
       try {
         const response = await api.get("/product/latest");
+                console.log("latest" . response)
+
         setProducts(response.data.products || []);
       } catch (error) {
         console.error(error);

@@ -37,8 +37,13 @@ const Login = () => {
             });
 
             const token = response.data.token;
+            const loggedUser = response.data.user || {
+                email: User.email,
+                role: "user"
+            };
 
             localStorage.setItem("token", token);
+            localStorage.setItem("user", JSON.stringify(loggedUser));
             window.dispatchEvent(new Event("authStateChanged"));
 
             setTimeout(() => {
