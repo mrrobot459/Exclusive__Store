@@ -9,6 +9,11 @@ import wishlist from "./routes/wishListRoute.js"
 import admin from "./routes/adminRoute.js"
 import cors from "cors"
 
+// Tempory code 
+import dns from "dns";
+dns.setServers(["8.8.8.8", "8.8.4.4"]);
+// Tempory code 
+
 const app = express()
 dotenv.config()
 const PORT = process.env.PORT
