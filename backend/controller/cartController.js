@@ -31,7 +31,7 @@ const addToCart = async (req, res) => {
     try {
         const userId = req.user.id;
         const { productId, quantity = 1 } = req.body;
-
+        const requestedQuantity = Number(quantity);
 
         if (!productId || quantity === undefined) {
             return res.status(400).json({
@@ -40,10 +40,21 @@ const addToCart = async (req, res) => {
             });
         }
 
-        // 1. Check cart
-        let cart = await Cart.findOne({ user: userId });
+        if (!Number.isInteger(requestedQuantity) || requestedQuantity <= 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Quantity must be a positive number"
+            });
+        }
 
-        // 2. Cart doesn't exist → create new cart
+        if (requestedQuantity > 10) {
+            return res.status(400).json({
+                success: false,
+                message: "You can add maximum 10 quantity of a product"
+            });
+        }
+
+        let cart = await Cart.findOne({ user: userId });
 
         if (!cart) {
             cart = await Cart.create({
@@ -51,7 +62,7 @@ const addToCart = async (req, res) => {
                 items: [
                     {
                         product: productId,
-                        quantity
+                        quantity: requestedQuantity
                     }
                 ]
             });
@@ -63,21 +74,28 @@ const addToCart = async (req, res) => {
             });
         }
 
-        // 3. Check product already exists
         const existingItem = cart.items.find(
             item => item.product.toString() === productId
         );
 
         if (existingItem) {
-            existingItem.quantity += quantity;
+            const nextQuantity = existingItem.quantity + requestedQuantity;
+
+            if (nextQuantity > 10) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Maximum quantity per product is 10"
+                });
+            }
+
+            existingItem.quantity = nextQuantity;
         } else {
             cart.items.push({
                 product: productId,
-                quantity
+                quantity: requestedQuantity
             });
         }
 
-        // 4. Save cart
         await cart.save();
 
         return res.status(200).json({
@@ -89,7 +107,8 @@ const addToCart = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             success: false,
-            message: "Internal server error ", error: error.message
+            message: "Internal server error",
+            error: error.message
         });
     }
 };

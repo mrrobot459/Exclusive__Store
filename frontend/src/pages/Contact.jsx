@@ -3,16 +3,16 @@ import { FiPhone, FiMail } from 'react-icons/fi';
 
 const Contact = () => {
   return (
-    <div className="max-w-[1170px] mx-auto px-5 py-10 pb-20 font-sans text-black">
+    <div className="max-w-292.5 mx-auto px-5 py-10 pb-20 font-sans text-black">
       {/* Breadcrumb */}
-      <div className="mb-[60px] text-sm">
+      <div className="mb-15 text-sm">
         <span className="text-gray-500 cursor-pointer hover:underline">Home</span> /{' '}
         <span className="text-black">Contact</span>
       </div>
 
       <div className="flex flex-col md:flex-row gap-8 items-start">
         {/* Left Side: Contact Information */}
-        <div className="w-full md:w-[340px] shrink-0 bg-white px-9 py-10 rounded shadow-[0_1px_13px_rgba(0,0,0,0.05)]">
+        <div className="w-full md:w-85 shrink-0 bg-white px-9 py-10 rounded shadow-[0_1px_13px_rgba(0,0,0,0.05)]">
           
           {/* Call To Us Section */}
           <div>
@@ -28,7 +28,7 @@ const Contact = () => {
             </div>
           </div>
           
-          <hr className="border-t border-black/30 my-[30px]" />
+          <hr className="border-t border-black/30 my-7.5" />
           
           {/* Write To Us Section */}
           <div>
@@ -52,33 +52,33 @@ const Contact = () => {
           <form className="flex flex-col" onSubmit={(e) => e.preventDefault()}>
             
             {/* Input Row */}
-            <div className="flex flex-col md:flex-row gap-4 mb-[30px] w-full">
+            <div className="flex flex-col md:flex-row gap-4 mb-7.5 w-full">
               <input 
                 type="text" 
                 placeholder="Your Name *" 
                 required 
-                className="flex-1 h-[50px] bg-[#f5f5f5] border-none rounded px-4 py-3 text-[15px] outline-none text-black placeholder:text-gray-500 focus:ring-1 focus:ring-gray-300 transition-all"
+                className="flex-1 h-12.5 bg-[#f5f5f5] border-none rounded px-4 py-3 text-[15px] outline-none text-black placeholder:text-gray-500 focus:ring-1 focus:ring-gray-300 transition-all"
               />
               <input 
                 type="email" 
                 placeholder="Your Email *" 
                 required 
-                className="flex-1 h-[50px] bg-[#f5f5f5] border-none rounded px-4 py-3 text-[15px] outline-none text-black placeholder:text-gray-500 focus:ring-1 focus:ring-gray-300 transition-all"
+                className="flex-1 h-12.5 bg-[#f5f5f5] border-none rounded px-4 py-3 text-[15px] outline-none text-black placeholder:text-gray-500 focus:ring-1 focus:ring-gray-300 transition-all"
               />
               <input 
                 type="tel" 
                 placeholder="Your Phone *" 
                 required 
-                className="flex-1 h-[50px] bg-[#f5f5f5] border-none rounded px-4 py-3 text-[15px] outline-none text-black placeholder:text-gray-500 focus:ring-1 focus:ring-gray-300 transition-all"
+                className="flex-1 h-12.5 bg-[#f5f5f5] border-none rounded px-4 py-3 text-[15px] outline-none text-black placeholder:text-gray-500 focus:ring-1 focus:ring-gray-300 transition-all"
               />
             </div>
             
             {/* Textarea Row */}
-            <div className="flex w-full mb-[30px]">
+            <div className="flex w-full mb-7.5">
               <textarea 
                 placeholder="Your Message" 
                 required
-                className="w-full h-[200px] resize-y bg-[#f5f5f5] border-none rounded px-4 py-3 text-[15px] outline-none text-black placeholder:text-gray-500 focus:ring-1 focus:ring-gray-300 transition-all"
+                className="w-full h-50 resize-y bg-[#f5f5f5] border-none rounded px-4 py-3 text-[15px] outline-none text-black placeholder:text-gray-500 focus:ring-1 focus:ring-gray-300 transition-all"
               ></textarea>
             </div>
             

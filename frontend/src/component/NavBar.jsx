@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
     NavLink,
     useLocation,
@@ -6,20 +6,58 @@ import {
 } from "react-router-dom";
 
 import { FaHeart, FaShoppingCart, FaRegUserCircle } from "react-icons/fa";
+import api from "../api/Api.js";
 
 const NavBar = () => {
     const location = useLocation();
     const navigate = useNavigate();
 
-    const [token, setToken] = useState(
-        localStorage.getItem("token")
-    );
+    const [token, setToken] = useState(() => localStorage.getItem("token"));
+    const [cartCount, setCartCount] = useState(0);
+
+    const syncAuthState = () => setToken(localStorage.getItem("token"));
+
+    useEffect(() => {
+        const updateCartCount = async () => {
+            if (!localStorage.getItem("token")) {
+                setCartCount(0);
+                return;
+            }
+
+            try {
+                const response = await api.get("/cart", {
+                    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+                });
+
+                const items = response.data?.cart?.items || [];
+                const total = items.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
+                setCartCount(total);
+            } catch (error) {
+                setCartCount(0);
+            }
+        };
+
+        updateCartCount();
+    }, [token, location.pathname]);
+
+    useEffect(() => {
+        window.addEventListener("storage", syncAuthState);
+        window.addEventListener("authStateChanged", syncAuthState);
+        window.addEventListener("cartUpdated", syncAuthState);
+
+        return () => {
+            window.removeEventListener("storage", syncAuthState);
+            window.removeEventListener("authStateChanged", syncAuthState);
+            window.removeEventListener("cartUpdated", syncAuthState);
+        };
+    }, []);
 
     const isSignupPage = location.pathname === "/signup";
 
     const logout = () => {
         localStorage.removeItem("token");
         setToken(null);
+        window.dispatchEvent(new Event("authStateChanged"));
         navigate("/");
     };
 
@@ -144,10 +182,15 @@ const NavBar = () => {
                         <NavLink
                             to="/cart"
                             className={({ isActive }) =>
-                                isActive ? "text-red-600" : ""
+                                isActive ? "text-red-600 relative" : "relative"
                             }
                         >
                             <FaShoppingCart size={20} />
+                            {cartCount > 0 && (
+                                <span className="absolute -top-2 -right-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                                    {cartCount > 99 ? "99+" : cartCount}
+                                </span>
+                            )}
                         </NavLink>
 
                         {/* Login / Logout */}

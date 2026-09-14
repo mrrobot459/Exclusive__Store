@@ -1,16 +1,14 @@
 import React, { useEffect, useState } from 'react'
+import { useNavigate } from "react-router-dom";
 
 import { IoMdArrowDropright, IoIosPhonePortrait } from "react-icons/io";
-import { FaLaptop, FaCamera, FaGamepad } from "react-icons/fa";
+import { FaLaptop, FaCamera, FaGamepad, FaHeart } from "react-icons/fa";
 import { BsSmartwatch } from "react-icons/bs";
 import { CiHeadphones } from "react-icons/ci";
 import { FaArrowRight, FaArrowLeft } from "react-icons/fa6";
 import { TbTruckDelivery } from "react-icons/tb";
 import { BiSupport } from "react-icons/bi";
 import { MdOutlineSystemSecurityUpdateGood } from "react-icons/md";
-
-
-
 
 import api from "../api/Api.js"
 import Cards from "../component/Cards.jsx"
@@ -45,8 +43,11 @@ const Home = () => {
   ]
 
 
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [latestProducts, setLatestProducts] = useState([]);
+  const [wishlistIds, setWishlistIds] = useState([]);
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
     const getProducts = async () => {
@@ -59,7 +60,6 @@ const Home = () => {
         setProducts(productsResponse.data.products);
         setLatestProducts(latestResponse.data.products);
 
-
       } catch (error) {
         console.log(error);
       }
@@ -67,6 +67,62 @@ const Home = () => {
 
     getProducts();
   }, []);
+
+  const fetchWishlist = async () => {
+    if (!token) {
+      setWishlistIds([]);
+      return;
+    }
+
+    try {
+      const response = await api.get("/wishlist", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const ids = (response.data.wishlist || []).map((item) => item._id || item);
+      setWishlistIds(ids);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchWishlist();
+  }, [token]);
+
+  const toggleWishlist = async (productId, event) => {
+    if (event) {
+      event.stopPropagation();
+    }
+
+    if (!token) {
+      window.alert("Please login to add products to wishlist");
+      navigate("/login");
+      return;
+    }
+
+    const isSaved = wishlistIds.includes(productId);
+
+    try {
+      if (isSaved) {
+        await api.delete(`/wishlist/remove/${productId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      } else {
+        await api.post(`/wishlist/add/${productId}`, {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
+
+      setWishlistIds((prev) =>
+        isSaved
+          ? prev.filter((id) => id !== productId)
+          : [...prev, productId]
+      );
+    } catch (error) {
+      console.error(error);
+      window.alert(error.response?.data?.message || "Unable to update wishlist");
+    }
+  };
 
   return (
     <>
@@ -168,7 +224,13 @@ const Home = () => {
         {/* swiper  */}
         <Cards products={products} />
         <div className="flex justify-center ">
-          <button className="bg-red-600 py-3 text-white px-10 rounded-xl mt-10" >View All Products</button>
+          <button
+            type="button"
+            onClick={() => navigate("/products")}
+            className="bg-red-600 py-3 text-white px-10 rounded-xl mt-10"
+          >
+            View All Products
+          </button>
         </div>
 
 
@@ -210,12 +272,23 @@ const Home = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {products.slice(0, 4).map((product) => {
+              const isSaved = wishlistIds.includes(product._id);
+
               return (
                 <div
                   key={product._id}
-                  className="group bg-gray-200 rounded-lg p-4 shadow-sm hover:shadow-lg transition-all duration-300"
+                  onClick={() => navigate(`/product/${product._id}`)}
+                  className="group relative cursor-pointer overflow-hidden rounded-lg bg-gray-200 p-4 shadow-sm transition-all duration-300 hover:shadow-lg"
                 >
-                  {/* Product Image */}
+                  <button
+                    type="button"
+                    onClick={(event) => toggleWishlist(product._id, event)}
+                    className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white shadow-md transition hover:scale-105"
+                    aria-label="Add to wishlist"
+                  >
+                    <FaHeart className={isSaved ? "text-red-500" : "text-gray-400"} size={18} />
+                  </button>
+
                   <div className="w-full h-52 flex items-center justify-center bg-gray-50 rounded-md overflow-hidden">
                     <img
                       className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-300"
@@ -224,7 +297,6 @@ const Home = () => {
                     />
                   </div>
 
-                  {/* Product Details */}
                   <div className="mt-4">
                     <p className="text-base font-medium text-gray-800 line-clamp-1">
                       {product.name}
@@ -233,8 +305,6 @@ const Home = () => {
                     <p className="mt-2 text-lg font-semibold text-red-500">
                       ₹{product.price.toLocaleString("en-IN")}
                     </p>
-
-
                   </div>
                 </div>
               );

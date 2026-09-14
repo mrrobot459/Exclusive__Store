@@ -8,8 +8,11 @@ import SignUp from "./pages/SignUp.jsx"
 import Login from "./pages/Login.jsx"
 import Wishlist from './pages/Wishlist.jsx';
 import Cart from './pages/Cart.jsx';
-
-
+import ProtectedRoute from './component/ProtectedRoute.jsx';
+import AuthRoute from './component/AuthRoute.jsx';
+import NotFound from './pages/NotFound.jsx';
+import Products from './pages/Products.jsx';
+import ProductDetail from './pages/ProductDetail.jsx';
 
 const App = () => {
   return (
@@ -19,14 +22,33 @@ const App = () => {
           <Route index element={<Home />} />
           <Route path="about" element={<About />} />
           <Route path="contact" element={<Contact />} />
-          <Route path="signup" element={<SignUp />} />
-          <Route path="login" element={<Login />} />
 
-          <Route path="cart" element={<Cart />} />
-          <Route path="wishlist" element={<Wishlist />} />
+          <Route path="signup" element={<AuthRoute><SignUp /></AuthRoute>} />
+          <Route path="login" element={<AuthRoute><Login /></AuthRoute>} />
+          <Route path="products" element={<Products />} />
+          <Route path="product/:id" element={<ProductDetail />} />
+
+          <Route
+            path="cart"
+            element={
+              <ProtectedRoute>
+                <Cart />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="wishlist"
+            element={
+              <ProtectedRoute>
+                <Wishlist />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
-
     </>)
 }
 

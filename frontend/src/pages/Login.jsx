@@ -1,12 +1,14 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import api from "../api/Api.js";
-import { useNavigate } from "react-router-dom";
 
 const Login = () => {
+    const location = useLocation();
+    const redirectMessage = location.state?.message || "";
+
     const [Error, setError] = useState({
         success: false,
-        message: "",
+        message: redirectMessage,
     });
 
     const [User, setUser] = useState({
@@ -23,32 +25,33 @@ const Login = () => {
         });
     };
 
-   const handleSubmit = async (e) => {
-  e.preventDefault();
+    const handleSubmit = async (e) => {
+        e.preventDefault();
 
-  try {
-    const response = await api.post("/login", User);
+        try {
+            const response = await api.post("/login", User);
 
-    setError({
-      success: response.data.success,
-      message: response.data.message,
-    });
+            setError({
+                success: response.data.success,
+                message: response.data.message,
+            });
 
-    const token = response.data.token;
+            const token = response.data.token;
 
-    localStorage.setItem("token", token);
+            localStorage.setItem("token", token);
+            window.dispatchEvent(new Event("authStateChanged"));
 
-    setTimeout(() => {
-      navigate("/");
-    }, 3000);
+            setTimeout(() => {
+                navigate("/");
+            }, 3000);
 
-  } catch (error) {
-    setError({
-      success: false,
-      message: error.response?.data?.message || "Login failed",
-    });
-  }
-};
+        } catch (error) {
+            setError({
+                success: false,
+                message: error.response?.data?.message || "Login failed",
+            });
+        }
+    };
 
 
 
@@ -71,18 +74,24 @@ const Login = () => {
 
                 {Error.message && (
                     Error.success ? (
-                        <div>
-                            <p className="text-green-500">
+                        <div className="mb-4 rounded-xl border border-green-400 bg-green-50 px-4 py-3 shadow-lg shadow-green-200">
+                            <p className="text-center font-semibold text-green-700">
                                 {Error.message}
                             </p>
-                            <p>Redirect to Login page in 3 seconds</p>
-                           
 
+                            <p className="mt-1 text-center text-sm text-gray-600">
+                                Redirect to Login page in{" "}
+                                <span className="font-bold text-green-600">
+                                    3 seconds...
+                                </span>
+                            </p>
                         </div>
                     ) : (
-                        <p className="text-red-500">
-                            {Error.message}
-                        </p>
+                        <div className="mb-4 rounded-xl border border-red-400 bg-red-50 px-4 py-3 shadow-lg shadow-red-200">
+                            <p className="text-center font-semibold text-red-700">
+                                {Error.message}
+                            </p>
+                        </div>
                     )
                 )}
 
